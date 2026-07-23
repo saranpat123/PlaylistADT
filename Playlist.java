@@ -24,22 +24,37 @@ public class Playlist {
 
     // TODO 1: เขียน Abstraction Function ตรงนี้
     // Abstraction Function:
-    //   AF(songs) = ...
+    // AF(songs) = เพลย์ลิสต์ที่เล่นเพลง songs.get(0), songs.get(1), ...,
+    // songs.get(songs.size()-1) ตามลำดับ โดยเพลงแรกคือเพลงที่เล่นก่อน
 
-    // TODO 2: เขียน Representation Invariant ตรงนี้ (4 ข้อ)
+    // TODO 2: เขียน Representation Invariant ตรงนี้
     // Representation Invariant:
-    //   ...
+    // 1. songs ต้องไม่เป็น null
+    // 2. ไม่มีสมาชิกใน songs เป็น null
+    // 3. ไม่มีสมาชิกใน songs เป็นสตริงว่าง
+    // 4. ไม่มีชื่อเพลงซ้ำกัน
+    // 5. จำนวนเพลงไม่เกิน MAX_SONGS
 
     // TODO 3: เขียน Safety from rep exposure ตรงนี้
     // Safety from rep exposure:
-    //   ...
+    // 1. songs เป็น private และ final
+    // 2. Constructor คัดลอกข้อมูลด้วย new ArrayList<>(initial)
+    // 3. songs() คืน defensive copy ด้วย new ArrayList<>(songs)
 
     /**
      * TODO 4: เขียน checkRep()
-     * แปลง RI ทุกข้อเป็น assert หนึ่งบรรทัด พร้อมข้อความอธิบาย
      */
     private void checkRep() {
-        // เขียนโค้ดตรงนี้
+        assert songs != null : "songs must not be null";
+        assert songs.size() <= MAX_SONGS : "too many songs";
+
+        Set<String> seen = new HashSet<>();
+
+        for (String s : songs) {
+            assert s != null : "song is null";
+            assert !s.isEmpty() : "song is empty";
+            assert seen.add(s) : "duplicate song: " + s;
+        }
     }
 
     // ===== Creator =====
@@ -54,39 +69,66 @@ public class Playlist {
 
     /**
      * TODO 5: Creator ตัวที่สอง
-     * สร้างเพลย์ลิสต์จากรายชื่อเพลงที่ให้มา
      *
-     * ระวัง: ห้ามเก็บ reference ของ initial ตรง ๆ (rep exposure!)
-     *
-     * @param initial รายชื่อเพลงเริ่มต้น ต้องไม่ซ้ำและไม่เกิน MAX_SONGS
-     * @throws IllegalArgumentException ถ้า initial ผิดเงื่อนไข
+     * @param initial รายชื่อเพลงเริ่มต้น
      */
     public Playlist(List<String> initial) {
-        this.songs = null;   // แก้บรรทัดนี้
-        // เขียนโค้ดตรงนี้
+
+        if (initial == null)
+            throw new IllegalArgumentException();
+
+        if (initial.size() > MAX_SONGS)
+            throw new IllegalArgumentException();
+
+        Set<String> seen = new HashSet<>();
+
+        for (String s : initial) {
+
+            if (s == null || s.isEmpty())
+                throw new IllegalArgumentException();
+
+            if (!seen.add(s))
+                throw new IllegalArgumentException();
+        }
+
+        this.songs = new ArrayList<>(initial);
+
+        checkRep();
     }
 
     // ===== Mutators =====
 
     /**
      * TODO 6: เพิ่มเพลงต่อท้ายเพลย์ลิสต์
-     *
-     * @param song ชื่อเพลง ต้องไม่เป็น null และไม่เป็นสตริงว่าง
-     * @return true ถ้าเพิ่มสำเร็จ, false ถ้ามีเพลงนี้อยู่แล้วหรือเต็มแล้ว
-     * @throws IllegalArgumentException ถ้า song เป็น null หรือสตริงว่าง
      */
     public boolean add(String song) {
-        return false;   // แก้บรรทัดนี้
+
+        if (song == null || song.isEmpty())
+            throw new IllegalArgumentException();
+
+        if (songs.contains(song))
+            return false;
+
+        if (songs.size() >= MAX_SONGS)
+            return false;
+
+        songs.add(song);
+
+        checkRep();
+
+        return true;
     }
 
     /**
      * TODO 7: ลบเพลงออกจากเพลย์ลิสต์
-     *
-     * @param song ชื่อเพลงที่ต้องการลบ
-     * @return true ถ้าลบสำเร็จ, false ถ้าไม่พบเพลงนี้
      */
     public boolean remove(String song) {
-        return false;   // แก้บรรทัดนี้
+
+        boolean result = songs.remove(song);
+
+        checkRep();
+
+        return result;
     }
 
     // ===== Observers =====
@@ -95,36 +137,32 @@ public class Playlist {
      * TODO 8: คืนจำนวนเพลงในเพลย์ลิสต์
      */
     public int size() {
-        return -1;   // แก้บรรทัดนี้
+        return songs.size();
     }
 
     /**
      * TODO 9: ตรวจว่ามีเพลงนี้อยู่หรือไม่
      */
     public boolean contains(String song) {
-        return false;   // แก้บรรทัดนี้
+        return songs.contains(song);
     }
 
     /**
      * TODO 10: คืนรายชื่อเพลงทั้งหมดตามลำดับ
-     *
-     * ระวัง: ห้ามคืน reference ของ songs ตรง ๆ (rep exposure!)
      */
     public List<String> songs() {
-        return null;   // แก้บรรทัดนี้
+        return new ArrayList<>(songs);
     }
 
     // ===== Producer =====
 
     /**
      * TODO 11: คืนเพลย์ลิสต์ใหม่ที่มีเพลงเดียวกันแต่สลับลำดับ
-     *
-     * ระวัง: ห้ามแก้เพลย์ลิสต์เดิม (this) เด็ดขาด
-     *
-     * @return เพลย์ลิสต์ใหม่ที่สลับลำดับแล้ว
      */
     public Playlist shuffled() {
-        return null;   // แก้บรรทัดนี้
+        List<String> copy = new ArrayList<>(songs);
+        Collections.shuffle(copy);
+        return new Playlist(copy);
     }
 
     @Override
